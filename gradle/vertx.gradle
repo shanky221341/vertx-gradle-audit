@@ -18,7 +18,7 @@ import org.vertx.java.platform.impl.cli.Starter
 
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: 'scala'
+//apply plugin: 'scala'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 
@@ -105,7 +105,7 @@ task copyMod( type:Copy, dependsOn: 'classes', description: 'Assemble the module
   into "build/mods/$moduleName"
   from compileGroovy
   from compileJava
-  from compileScala
+//  from compileScala
   from 'src/main/resources'
   into( 'lib' ) {
     from configurations.compile
