@@ -1,0 +1,7 @@
+src/main/resources
+bin
+out/production/service
+out/test/service
+build/deps
+build/classes/main
+build/resources/main
