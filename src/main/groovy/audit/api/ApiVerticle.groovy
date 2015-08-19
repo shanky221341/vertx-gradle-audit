@@ -24,6 +24,8 @@ class ApiVerticle extends Verticle {
   	
 	  println "auditPort is $auditPort"
 	  println "auditPort is $auditHost"
+	  
+	  
   }
 }
 
