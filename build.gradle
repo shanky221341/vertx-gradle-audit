@@ -54,6 +54,8 @@ dependencies {
   // If you're creating Groovy compiled verticles you may need the following dependencies
   provided "org.codehaus.groovy:groovy-all:$groovyVersion"
   provided "io.vertx:lang-groovy:$groovyLangModVersion@jar"
+  
+  compile "org.elasticsearch:elasticsearch:1.4.5"
 
   // If you're creating Scala compiled verticles you may need the following dependencies
 //  provided "org.scala-lang:scala-library:$scalaVersion"
