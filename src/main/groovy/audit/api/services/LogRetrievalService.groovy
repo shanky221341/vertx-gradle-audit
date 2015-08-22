@@ -1,6 +1,8 @@
 package audit.api.services
 
 import org.elasticsearch.client.Client
+import org.elasticsearch.index.query.QueryBuilders
+
 import audit.api.domain.Repository
 
 class LogRetrievalService {
@@ -17,4 +19,8 @@ class LogRetrievalService {
 		this._type = type
 		this.repository = new Repository(client, _index,_type)
 	}
+	
+	def retrieveAllLogsForUser(userId,callback,errorCallback){
+		def query = QueryBuilders.matchQuery("user", userId)
+			}
 }
