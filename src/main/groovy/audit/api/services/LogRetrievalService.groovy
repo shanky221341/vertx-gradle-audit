@@ -21,6 +21,7 @@ class LogRetrievalService {
 	}
 	
 	def retrieveAllLogsForUser(userId,callback,errorCallback){
+		print callback("kllm")
 		def query = QueryBuilders.matchQuery("user", userId)
 			}
 }

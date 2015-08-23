@@ -8,18 +8,16 @@ import static org.junit.Assert.*
 import java.util.concurrent.CountDownLatch
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse
 import org.elasticsearch.action.bulk.BulkRequestBuilder
 import org.elasticsearch.action.index.IndexResponse
-import org.elasticsearch.action.search.SearchResponse
-import org.elasticsearch.action.search.SearchType
 import org.elasticsearch.client.Client
 import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
-import org.elasticsearch.index.query.FilterBuilders
-import org.elasticsearch.index.query.QueryBuilders
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -63,10 +61,10 @@ class LogRetrievalServiceIntegrationtests {
 				.actionGet()
 		service = new LogRetrievalService(client,index,type)
 	}
-	//	@After
-	//	void after(){
-	//		client.admin().indices().delete(new DeleteIndexRequest(index))
-	//	}
+		@After
+		void after(){
+			client.admin().indices().delete(new DeleteIndexRequest(index))
+		}
 	@Test
 	void 'should return all logs for tests'() {
 		def documents = []
@@ -112,24 +110,23 @@ class LogRetrievalServiceIntegrationtests {
 		def userLogs = []
 		latch = new CountDownLatch(1)
 
-//		service.retrieveAllLogsForUser("test-user-1",{ logs ->
-//			userLogs= logs
-//			latch.countDown()
-//		},
-//		{ error ->
-//			println error
-//			latch.countDown()
-//
-//		}
-//		)
-		
-//		SearchResponse response = client.prepareSearch("index")
-//        .setTypes("type")
-//        .setQuery(QueryBuilders.termQuery("user", "test")) 
-//        .setFrom(0).setSize(60).setExplain(true)
-//        .execute()
-//        .actionGet()
-//		
-//		print response
+		service.retrieveAllLogsForUser("test-user-1",{ logs ->
+			userLogs= logs
+			latch.countDown()
+		},
+		{ error ->
+			println error
+			latch.countDown()
+
+		})
+
+		//		SearchResponse response = client.prepareSearch("index")
+		//        .setTypes("type")
+		//        .setQuery(QueryBuilders.termQuery("user", "test"))
+		//        .setFrom(0).setSize(60).setExplain(true)
+		//        .execute()
+		//        .actionGet()
+		//
+		//		print response
 	}
 }
