@@ -17,6 +17,7 @@ class Repository {
 		this._type =type
 	}
 	def scanAndScrollSearch(query,scrollSize,callback,errorCallback){
+		
 		SearchResponse response = client.prepareSearch(_index)
 				.setSearchType(SearchType.SCAN)
 				.setScroll(new TimeValue(60000))
@@ -41,6 +42,7 @@ class Repository {
 			
 		}
 		
+//		println documents
 		 callback(documents)
 	}
 }

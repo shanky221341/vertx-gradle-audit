@@ -1,6 +1,9 @@
 package audit.api.services
 
+import static org.elasticsearch.index.query.FilterBuilders.*
+
 import org.elasticsearch.client.Client
+import org.elasticsearch.index.query.FilterBuilders
 import org.elasticsearch.index.query.QueryBuilders
 
 import audit.api.domain.Repository
@@ -19,13 +22,28 @@ class LogRetrievalService {
 		this._type = type
 		this.repository = new Repository(client, _index,_type)
 	}
-	
+
 	def retrieveAllLogsForUser(userId,callback,errorCallback){
 		def query = QueryBuilders.matchQuery("user", userId)
+//		println query
 		repository.scanAndScrollSearch(query,scanAndScrollLimit,callback,errorCallback)
-			}
+	}
 	def retrieveAllLogsWithinPeriod(fromDate,toDate,callback,errorCallback){
 		def query= QueryBuilders.rangeQuery("date").from(fromDate).to(toDate)
 		repository.scanAndScrollSearch(query,scanAndScrollLimit,callback,errorCallback)
 	}
+	def retrieveLogsWithinPeriodForUser(fromDate,toDate,userId,callback,errorCallback){
+		def query = QueryBuilders.rangeQuery("date")
+		.from(fromDate)
+		.to(toDate)
+		
+		def filteredQuery =QueryBuilders.filteredQuery(query, FilterBuilders.boolFilter().must(FilterBuilders.termFilter("user", userId)))
+		repository.scanAndScrollSearch(filteredQuery, scanAndScrollLimit,callback , errorCallback)
+	}
+	def retrieveAllLogsFromSource(source,callback,errorCallback){
+		def query = QueryBuilders.matchQuery("source",source)
+		println query
+		repository.scanAndScrollSearch(query,scanAndScrollLimit,callback, errorCallback) 
+	}
+	
 }
