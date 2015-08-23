@@ -42,8 +42,11 @@ class LogRetrievalService {
 	}
 	def retrieveAllLogsFromSource(source,callback,errorCallback){
 		def query = QueryBuilders.matchQuery("source",source)
-		println query
 		repository.scanAndScrollSearch(query,scanAndScrollLimit,callback, errorCallback) 
+	}
+	def retrieveAllLogsWhereMessageContains(message,callback,errorCallback){
+		def query = QueryBuilders.matchQuery("message",message)
+		repository.scanAndScrollSearch(query,scanAndScrollLimit,callback, errorCallback)
 	}
 	
 }

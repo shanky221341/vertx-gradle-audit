@@ -62,10 +62,10 @@ class LogRetrievalServiceIntegrationtests {
 				.actionGet()
 		service = new LogRetrievalService(client,index,type)
 	}
-	@After
-	void after(){
-		client.admin().indices().delete(new DeleteIndexRequest(index))
-	}
+		@After
+		void after(){
+			client.admin().indices().delete(new DeleteIndexRequest(index))
+		}
 	@Test
 	void 'should return all logs for tests'() {
 		def documents = []
@@ -254,9 +254,60 @@ class LogRetrievalServiceIntegrationtests {
 			println error
 			latch.countDown()
 		})
+
+		latch.await()
+		assert userLogs != null
+		assert userLogs.size()==3
+		userLogs.each{ log ->
+			assert log.source == 'test-audit-service'
+
+		}
+	}
+	@Test
+	void 'should return all logs matching a free  text search'(){
+		def documents =[]
+
+		def today =new Date()
+
+		CountDownLatch latch = new CountDownLatch(1)
+
+		use(TimeCategory){
+			documents << [user:'test-user-1',source:'test-audit-service',message:'First-Message',date:today-1.month]
+			documents << [user:'test-user-2',source:'test-audit-service',message:'Second-Message',date:today]
+			documents << [user:'test-user-3',source:'test-audit-service',message:'Third-Message',date:today+1.month]
+		}
+
+		BulkRequestBuilder request = client.prepareBulk().setRefresh(true)
+
+		documents.each {doc ->
+			request.add(client.prepareIndex(index,type).setSource(doc))
+
+		}
+
+		request.execute().actionGet()
+		latch.countDown()
+
+		latch.await()
+
+		def userLogs = []
+		latch = new CountDownLatch(1)
+
+		service.retrieveAllLogsWhereMessageContains('second',{logs ->
+			userLogs =logs
+			latch.countDown()
+		},
+		{ error->
+			println error
+			latch.countDown()
+		})
 		
 		latch.await()
-		print userLogs
+		assert userLogs != null
+		assert userLogs.size()==1
+		userLogs.each{ log ->
+			assert log.message =='Second-Message'
+			
+		}
 	}
 
 }
