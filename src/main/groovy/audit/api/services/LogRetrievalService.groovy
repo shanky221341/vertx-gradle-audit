@@ -21,7 +21,11 @@ class LogRetrievalService {
 	}
 	
 	def retrieveAllLogsForUser(userId,callback,errorCallback){
-		print callback("kllm")
 		def query = QueryBuilders.matchQuery("user", userId)
+		repository.scanAndScrollSearch(query,scanAndScrollLimit,callback,errorCallback)
 			}
+	def retrieveAllLogsWithinPeriod(fromDate,toDate,callback,errorCallback){
+		def query= QueryBuilders.rangeQuery("date").from(fromDate).to(toDate)
+		repository.scanAndScrollSearch(query,scanAndScrollLimit,callback,errorCallback)
+	}
 }

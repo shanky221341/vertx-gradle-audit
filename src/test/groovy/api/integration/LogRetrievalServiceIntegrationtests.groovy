@@ -4,6 +4,7 @@ package api.integration
 import static org.elasticsearch.common.xcontent.XContentFactory.*
 import static org.elasticsearch.index.query.QueryBuilders.*
 import static org.junit.Assert.*
+import groovy.time.TimeCategory
 
 import java.util.concurrent.CountDownLatch
 
@@ -61,10 +62,10 @@ class LogRetrievalServiceIntegrationtests {
 				.actionGet()
 		service = new LogRetrievalService(client,index,type)
 	}
-		@After
-		void after(){
-			client.admin().indices().delete(new DeleteIndexRequest(index))
-		}
+	@After
+	void after(){
+		client.admin().indices().delete(new DeleteIndexRequest(index))
+	}
 	@Test
 	void 'should return all logs for tests'() {
 		def documents = []
@@ -120,13 +121,94 @@ class LogRetrievalServiceIntegrationtests {
 
 		})
 
-		//		SearchResponse response = client.prepareSearch("index")
-		//        .setTypes("type")
-		//        .setQuery(QueryBuilders.termQuery("user", "test"))
-		//        .setFrom(0).setSize(60).setExplain(true)
-		//        .execute()
-		//        .actionGet()
-		//
-		//		print response
+		latch.await()
+
+		assert userLogs != null
+		assert userLogs.size()==1
+
 	}
+	@Test
+	void 'should return all logs within a period'(){
+		def documents = []
+		def today= new Date()
+
+		CountDownLatch latch = new CountDownLatch(1)
+
+		use(TimeCategory){
+			documents << [user:'test-user-1',source:'test-audit-service',message:'First-Message',date:today-1.month]
+			documents << [user:'test-user-2',source:'test-audit-service',message:'Second-Message',date:today]
+			documents << [user:'test-user-3',source:'test-audit-service',message:'Third-Message',date:today+1.month]
+		}
+
+		BulkRequestBuilder request =client.prepareBulk().setRefresh(true)
+
+		documents.each{ doc ->
+
+			request.add(client.prepareIndex(index,type).setSource(doc))
+		}
+
+		request.execute().actionGet()
+		latch.countDown()
+
+		latch.await()
+
+		def userLogs = []
+		latch = new CountDownLatch(1)
+
+		service.retrieveAllLogsWithinPeriod("2015-07-01","now",{ logs ->
+			userLogs=logs
+			latch.countDown()
+		},
+		{error ->
+			println error
+			latch.countDown()
+		})
+
+		latch.await()
+		println userLogs
+		assert userLogs !=null
+		assert userLogs.size() ==2
+
+	}
+	@Test
+	void 'should return all logs within a period for a specified user'(){
+		def documents =[]
+
+		def today = new Date()
+		CountDownLatch latch =new CountDownLatch(1)
+
+		use(TimeCategory){
+			documents << [user:'test-user-1',source:'test-audit-service',message:'First-Message',date:today-1.month]
+			documents << [user:'test-user-2',source:'test-audit-service',message:'Second-Message',date:today]
+			documents << [user:'test-user-3',source:'test-audit-service',message:'Third-Message',date:today+1.month]
+		}
+
+		BulkRequestBuilder request = client.prepareBulk().setRefresh(true)
+
+		documents.each{doc ->
+			request.add(client.prepareIndex(index,type).setSource(doc))
+		}
+
+		request.execute().actionGet()
+		latch.countDown()
+
+		latch.await()
+		def userLogs =[]
+
+		latch =new CountDownLatch(1)
+
+		service.retrieveLogsWithinPeriodForUser("2015-07-01","now","test-user-2",{logs ->
+			userLogs=logs
+			latch.countDown()
+		},
+		{error ->
+			println error
+			latch.countDown()
+		})
+
+		latch.await()
+		
+		println userLogs
+	}
+
 }
